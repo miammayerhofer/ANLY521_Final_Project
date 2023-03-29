@@ -17,7 +17,8 @@ driver.get("https://www.aclu.org/legislative-attacks-on-lgbtq-rights?impact=&sta
 element = driver.find_element(By.XPATH, "/html/body/div/div[4]/div/section[1]/div/div/div[2]/div[4]/div")
 # Get HTML of just the table
 table_html = element.get_attribute("innerHTML")
-
+# Quit driver
+driver.quit()
 # Convert table to a soup object
 soup = BeautifulSoup(table_html, "html.parser")
 # Store all the rows (tr tags)
