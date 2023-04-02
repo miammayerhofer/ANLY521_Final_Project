@@ -15,7 +15,7 @@ import pandas as pd
 # Store bill names and texts lists
 bill_names, bill_texts = [], []
 # Set the initial starting path for the bill pdfs
-path = "bill_pdfs/"
+path = "raw_data/"
 for filename in os.listdir(path):
     # Prep for opening the PDF
     filename_lower = filename.lower()
