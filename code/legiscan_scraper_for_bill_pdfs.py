@@ -25,7 +25,7 @@ import os
 import pikepdf
 
 # Read in the table scraped from the ACLU
-aclu_bills = pd.read_csv("aclu_bill_data.csv")
+aclu_bills = pd.read_csv("../modified_data/aclu_bill_data.csv")
 aclu_bills.bill_name[23] = "HB 1098"
 
 
