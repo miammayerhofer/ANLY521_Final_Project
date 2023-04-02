@@ -60,7 +60,7 @@ for i in range(len(rows)):
 # Put lists into a dictionary form, convert to data frame, and save to csv file
 data = {"state": states, "link": links, "bill_name": names, "category": categories, "status": statuses}
 df = pd.DataFrame(data)
-df.to_csv('aclu_bill_data.csv', index = False)
+df.to_csv("../modified_data/aclu_bill_data.csv", index = False)
 
 
 
