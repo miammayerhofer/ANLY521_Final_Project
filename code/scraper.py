@@ -1,4 +1,10 @@
+# =======================
+# ACLU Table Scraper
+# File: scraper.py
+# Author: Mia Mayerhofer
+# =======================
 
+## IMPORT PACKAGES
 from selenium import webdriver         
 from selenium.webdriver.common.by import By    
 import time                                   
