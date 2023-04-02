@@ -15,7 +15,7 @@ import pandas as pd
 # Store bill names and texts lists
 bill_names, bill_texts = [], []
 # Set the initial starting path for the bill pdfs
-path = "raw_data/"
+path = "../raw_data/"
 for filename in os.listdir(path):
     # Prep for opening the PDF
     filename_lower = filename.lower()
@@ -45,6 +45,6 @@ bills_dict = {"name": bill_names, "text": bill_texts}
 # Convert to data frame
 bills_df = pd.DataFrame(bills_dict)
 # Make a csv file
-bills_df.to_csv("bill_texts.csv")
+bills_df.to_csv("../modified_data/bill_texts.csv")
 
 
