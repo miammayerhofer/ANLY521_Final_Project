@@ -44,7 +44,7 @@ for i in range(len(rows)):
     if url_tag == None: 
         links.append(np.NAN)
         finding_name = specific_bill_data.find("span", class_ = "is-block-mobile")
-        names.append(finding_name.text.strip())
+        names.append(finding_name.text.strip().replace(".", "").replace(" ", ""))
     else: 
         links.append(url_tag["href"])
         names.append(url_tag.text.strip())

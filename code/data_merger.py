@@ -29,7 +29,7 @@ def state_and_name_extractor(string):
 
 # IMPORT DATA
 aclu_table = pd.read_csv("../modified_data/aclu_bill_data.csv")
-bill_texts = pd.read_csv("../modified_data/bill_texts.csv")
+bill_texts = pd.read_csv("../modified_data/bill_texts.csv", encoding='iso-8859-1')
 # Drop unamed column
 bill_texts = bill_texts.drop(bill_texts.columns[0], axis = 1)
 
