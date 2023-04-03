@@ -30,13 +30,18 @@ for filename in os.listdir(path):
         for page in range(pdf_reader.getNumPages()):
             # Extract the text from the current page
             page_text = pdf_reader.getPage(page).extractText()
-            # Getting rid of non-ascii characters
-            page_text = page_text.replace("â??", "")
-            page_text = page_text.encode('ascii', 'ignore').decode('ascii')
-            page_text = re.sub(r'[^\x00-\x7F]+', "", page_text)
-            page_text = re.sub(r'[^a-zA-Z0-9]', "", page_text)
+            if filename == "AK_HB27.pdf":
+                print("PAGE TEXT:", page_text)
+                print("SPLIT LINES:", page_text.splitlines())
+            split_lines = page_text.splitlines()
+            for i in range(len(split_lines)):
+                # Getting rid of non-ascii characters
+                split_lines[i] = split_lines[i].replace("â??", "")
+                split_lines[i] = split_lines[i].encode('ascii', 'ignore').decode('ascii')
+                split_lines[i] = re.sub(r'[^\x00-\x7F]+', "", split_lines[i])
+                split_lines[i] = re.sub(r'[^a-zA-Z0-9]', "", split_lines[i])
             # Add lines to list
-            curr_lines += page_text.splitlines()
+            curr_lines += split_lines
         # Add full bill text to list
         bill_texts.append(curr_lines)
         # Get the bill name and state and append to lists
