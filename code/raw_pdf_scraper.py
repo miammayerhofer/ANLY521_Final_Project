@@ -30,9 +30,7 @@ for filename in os.listdir(path):
         for page in range(pdf_reader.getNumPages()):
             # Extract the text from the current page
             page_text = pdf_reader.getPage(page).extractText()
-            if filename == "AK_HB27.pdf":
-                print("PAGE TEXT:", page_text)
-                print("SPLIT LINES:", page_text.splitlines())
+
             split_lines = page_text.splitlines()
             for i in range(len(split_lines)):
                 # Getting rid of non-ascii characters
@@ -82,7 +80,8 @@ state_dict = {
     'South Dakota': 'SD','Tennessee': 'TN','Texas': 'TX','Utah': 'UT','Vermont': 'VT','Virginia': 'VA',
     'Washington': 'WA','West Virginia': 'WV','Wisconsin': 'WI','Wyoming': 'WY'}
 # Change state names to acronym
-aclu_table["state"] = aclu_table["state"].map(state_dict)
+aclu_table = aclu_table.rename(columns = {"state": "full_state"})
+aclu_table["state"] = aclu_table["full_state"].map(state_dict)
 aclu_table.loc[211, "bill_name"] = "SB228"
 
 # Get the bills that are different between the two data frames
