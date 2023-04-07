@@ -10,6 +10,7 @@ from PyPDF2 import PdfReader
 import os
 import pandas as pd
 import re
+import zlib
 
 
 # Store bill names and texts lists
@@ -20,28 +21,58 @@ for filename in os.listdir(path):
     # Prep for opening the PDF
     filename_lower = filename.lower()
     if filename_lower.endswith(".pdf"):
+        print(filename_lower)
         # Open the current PDF file
         pdf = open(os.path.join(path, filename), "rb")
-        # Create a PDF reader object
-        pdf_reader = PdfReader(pdf)
-        # Make a list to store the text from each page in
-        curr_lines = []
-        # Loop through each page in the PDF document
-        for page in range(pdf_reader.getNumPages()):
-            # Extract the text from the current page
-            page_text = pdf_reader.getPage(page).extractText()
+        # Make an empty string to get the full text
+        full_page_text = ''
+        # if this PDF is a texas file, we need to use FlateDecode to decode the file
+        if filename_lower.startswith("tx"):
+            stream = re.compile(rb'.*?FlateDecode.*?stream(.*?)endstream', re.S)
+            # stream in the data
+            for s in stream.findall(pdf.read()):
+                s = s.strip(b'\r\n')
+                try:
+                    # decompress the file into bytes and then decode into regular text
+                    word_string = zlib.decompress(s)
+                    word_string = word_string.decode('utf-8')
+                    word_string = word_string.split("\n")
+                    # the actual text is enclosed in parentheses
+                    page_text = [re.sub('\(|\)', '', re.search("\((.*)\)", i).group(0)) for i in word_string if i.startswith("(")]
+                    # remove numbers
+                    page_text = [i for i in full_page_text if not i.isdigit()]
+                    # create the string
+                    full_page_text += page_text
+                except Exception as e:
+                    pass
+                    # print(e)
+            # Add full bill text to list
+            bill_texts.append(full_page_text)
+        # if this PDF is not a texas file, read it in with the Python PDF reader
+        # help with code: https://gist.github.com/averagesecurityguy/ba8d9ed3c59c1deffbd1390dafa5a3c2
+        else:
+            # Create a PDF reader object
+            pdf_reader = PdfReader(pdf)
+            # Loop through each page in the PDF document
+            for page_number in range(len(pdf_reader.pages)):
+                # Extract the text from the current page
+                page_text = pdf_reader.pages[page_number].extract_text()
 
-            split_lines = page_text.splitlines()
-            for i in range(len(split_lines)):
+                # remove new lines
+                page_text = re.sub(r'\n', ' ', page_text)
+
                 # Getting rid of non-ascii characters
-                split_lines[i] = split_lines[i].replace("â??", "")
-                split_lines[i] = split_lines[i].encode('ascii', 'ignore').decode('ascii')
-                split_lines[i] = re.sub(r'[^\x00-\x7F]+', "", split_lines[i])
-                split_lines[i] = re.sub(r'[^a-zA-Z0-9]', "", split_lines[i])
-            # Add lines to list
-            curr_lines += split_lines
+                page_text = re.sub(r"â??", "", page_text)
+                page_text = page_text.encode('ascii', 'ignore').decode('ascii')
+                page_text = re.sub(r'[^\x00-\x7F]+', " ", page_text)
+                page_text = re.sub(r'[^a-zA-Z0-9]', " ", page_text)
+                full_page_text += page_text
+                # print(page_text[:200])
+            # Close the PDF file
+            pdf.close()
+
         # Add full bill text to list
-        bill_texts.append(curr_lines)
+        bill_texts.append(full_page_text)
         # Get the bill name and state and append to lists
         filename_split1 = filename.split("_")
         # Add state to state list
@@ -49,8 +80,9 @@ for filename in os.listdir(path):
         # Add bill names to list
         filename_split2 = filename_split1[1].split(".")
         bill_names.append(filename_split2[0])
-        # Close the PDF file
-        pdf.close()
+print("bill states", len(bill_states))
+print("bill names", len(bill_names))
+print("bill texts", len(bill_texts))
 # Make a dictionary
 bills_dict = {"state": bill_states, "bill_name": bill_names, "text": bill_texts}
 # Convert to data frame
@@ -59,7 +91,7 @@ bills_df = pd.DataFrame(bills_dict)
 bills_df = bills_df.sort_values("state").reset_index(drop = True)
 bills_df = bills_df.reset_index(drop = True)
 # Make a csv file
-bills_df.to_csv("../modified_data/bill_texts.csv")
+bills_df.to_csv("../modified_data/bill_texts_full_text.csv")
 
 
 # Import ACLU table
@@ -92,6 +124,6 @@ aclu_table.loc[211, "bill_name"] = "SB228"
 merged_df = aclu_table.merge(bills_df, on = ["state", "bill_name"])
 
 # Make a csv file
-merged_df.to_csv("../modified_data/merged_bill_data.csv")
+merged_df.to_csv("../modified_data/merged_bill_data_full_text.csv")
 
 
