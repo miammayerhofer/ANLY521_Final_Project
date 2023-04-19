@@ -8,7 +8,7 @@ from pathlib import Path
 
 def read_files():
     # Set the initial starting path for the bill pdfs
-    path = "../raw_data/"
+    path = "../../raw_data/"
     # Store bill names and texts lists
     bill_states, bill_names, bill_texts = [], [], []
     # go through all the files
@@ -41,7 +41,7 @@ def scrape_text(path, file_name):
     # Open the current PDF file
     pdf = open(os.path.join(path, file_name), "rb")
     # Make an empty string to get the full text
-    full_page_text = ''
+    full_page_text = ""
     # If this PDF is a texas file, we need to use FlateDecode to decode the file
     if file_name.startswith("tx"):
         stream = re.compile(rb'.*?FlateDecode.*?stream(.*?)endstream', re.S)
@@ -60,6 +60,7 @@ def scrape_text(path, file_name):
                 page_text = ' '.join(page_text)
                 # Remove extra spaces
                 page_text = re.sub(r'\n|  ', ' ', page_text)
+                print(page_text)
                 # Append to the full string
                 full_page_text += page_text
             except Exception as e:
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     # Read in the pdfs
     bills_df = read_files()
     # Make a csv file
-    bills_df.to_csv(Path().absolute().parents[0]/Path("modified_data")/"bill_texts.csv", index = False)
+    bills_df.to_csv("../../modified_data/bill_texts.csv", index = False)
 
 
 

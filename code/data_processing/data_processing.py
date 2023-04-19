@@ -1,16 +1,12 @@
-from pathlib import Path
 import pandas as pd
-import nltk
-from nltk.tokenize import word_tokenize
-import matplotlib.pyplot as plt
 import re
 import wordninja
-import ast
+from math import log
 
 
 def import_aclu():
     """ Function to import and format the ACLU table """
-    aclu_table = pd.read_csv(Path().absolute().parents[0]/Path("modified_data")/"aclu_table_data.csv")
+    aclu_table = pd.read_csv("../../modified_data/aclu_table_data.csv")
     # Remove spaces and periods in bill names
     aclu_table["bill_name"] = aclu_table["bill_name"].str.replace(" ", "", regex = False)
     aclu_table["bill_name"] = aclu_table["bill_name"].str.replace(".", "", regex = False)
@@ -33,23 +29,21 @@ def import_aclu():
 
 def import_bill_texts():
     """ Function to read in the csv file with our bill summaries"""
-    bill_texts = pd.read_csv(Path().absolute().parents[0]/Path("modified_data")/"bill_texts.csv")
+    bill_texts = pd.read_csv("../../modified_data/bill_texts.csv")
     return bill_texts
 
 def import_summaries():
     """ Function to read in the csv file with our bill summaries"""
-    summaries = pd.read_csv(Path().absolute().parents[0]/Path("modified_data")/"summaries.csv")
+    summaries = pd.read_csv("../../modified_data/summaries.csv")
     return summaries
 
 def text_shortener(bill_text):
 	"""
-	Given a bill text, it finds the section of the PDF where the bill is enacted
-	and returns only the text after that
-	Enacting bill texts:
-	- be it enacted by
-	- enact as follows
-	- state of [state name] enact
-	- assembly of [state name] enact
+	This function performs several operations to shorten the bill texts:
+		- only begin bill on a phrase that marks the start of the bill text (e.g. 'be enacted by...')
+		- remove section headers
+		- remove odd patterns
+		- remove sections of multiple spaces
 	"""
 	enact_str = r"be it enacted by|enact as follows|state of [a-z]+ enact|assembly of [a-z ]+ enact"
 	# Find where the bill is enacted
@@ -64,21 +58,61 @@ def text_shortener(bill_text):
 	else:
 		first_section_index = 0
 	shortened_str = shortened_str[first_section_index:]
-	# Remove digits
-	shortened_str = re.sub(r' [0-9]+ | [0-9]+[A-Z] ', ' ', shortened_str)
-	# List of other strings to remove
-	str_to_remove = ['NewTextUnderlinedDELETEDTEXTBRACKETED']
-	shortened_str = re.sub('|'.join(str_to_remove), '', shortened_str)
+	# Remove all instances of more than 1 space
+	shortened_str = re.sub(r'\s{2,}', ' ', shortened_str)
+    # Common phrase among bill to remove
+	shortened_str = re.sub(r'NewTextUnderlinedDELETEDTEXTBRACKETED', ' ', shortened_str, flags = re.IGNORECASE)
+	shortened_str = re.sub(r'New Text Underlined DELETED TEXT BRACKETED', ' ', shortened_str, flags = re.IGNORECASE)
 	# Remove section headers
-	shortened_str = re.sub('section [0-9]+[a-z] ?', ' ', shortened_str, flags=re.IGNORECASE)
-	return shortened_str
+	shortened_str = re.sub(r'sec \w+ ', ' ', shortened_str, flags = re.IGNORECASE)
+	shortened_str = re.sub(r'section \w+ ', ' ', shortened_str, flags = re.IGNORECASE)
+	# Remove strange section header pattern noticed in a few bills
+	shortened_str = re.sub(r'\\[A-Za-z]+\b', ' ', shortened_str, flags = re.IGNORECASE)
+	# Remove digits and strings of digits
+	shortened_str = re.sub(r' [0-9]+ | [0-9]+[A-Z] ', ' ', shortened_str)
+	shortened_str = re.sub(r'\b\d+\b', ' ', shortened_str)
+	# Remove any patterns of multiple capital letters separated by spaces: "A A A"
+	shortened_str = re.sub(r'\b[A-Z](?:\s+[A-Z])+\b', ' ', shortened_str)
+	shortened_str = re.sub(r'\d+', ' ', shortened_str)
+	# Remove all instances of more than 1 space
+	shortened_str = re.sub(r'\s{2,}', ' ', shortened_str)
+	return shortened_str.strip()
+
+def infer_spaces(bill_text, wordcost, maxword):
+	"""Uses dynamic programming to infer the location of spaces in a string without spaces - basis of wordninja code
+	Source code: https://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
+	"""
+	# Prepare string (lower and remove all spaces)
+	s = bill_text.lower()
+	s = re.sub(r'\s+', "", s)
+	def best_match(i):
+		"""
+		Find the best match for the i first characters, assuming cost has been built for the i-1 first characters
+		Returns a pair (match_cost, match_length)
+		"""
+		candidates = enumerate(reversed(cost[max(0, i-maxword):i]))
+		return min((c + wordcost.get(s[i-k-1:i], 9e999), k+1) for k,c in candidates)
+	# Build cost array
+	cost = [0]
+	for i in range(1,len(s)+1):
+		c,k = best_match(i)
+		cost.append(c)
+    # Backtrack to recover the minimal-cost string
+	out = []
+	i = len(s)
+	while i>0:
+		c,k = best_match(i)
+		assert c == cost[i]
+		out.append(s[i-k:i])
+		i -= k
+	return " ".join(reversed(out))
 
 def word_ninja_tokenize(string):
 	""" Function to tokenize each line of a bill with word ninja """
 	# Remove spaces
 	stripped = string.replace(' ', '')
 	# Use word ninja to infer words
-	inferred_words = wordninja.split(string)
+	inferred_words = wordninja.split(stripped)
 	# Join words back together
 	cleaned_text = ' '.join(inferred_words)
 	return cleaned_text
@@ -100,17 +134,20 @@ def merge_data():
 
 if __name__ == "__main__":
 	data = merge_data()
-	# Use word ninja to clean words that might be separated
-	data["cleaned_text"] = data["original_text"].apply(lambda x: word_ninja_tokenize(x))
-	# Shorten the text
-	data["cleaned_text"] = data["cleaned_text"].apply(lambda x: text_shortener(x))
+	# Build a cost dictionary, assuming Zipf's law and cost = -math.log(probability)
+	words = open("../../modified_data/words-by-frequency.txt").read().split()
+	wordcost = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
+	maxword = max(len(x) for x in words)
+	# Use word ninja to clean words that might be separated and shorten the text
+	data["cleaned_text"] = data["original_text"].apply(lambda x: text_shortener(x))
+	data["cleaned_text"] = data["cleaned_text"].apply(lambda x: infer_spaces(x, wordcost, maxword))
 	# Combine state and bill name columns into id column
 	data["bill_id"] = data["state"].astype(str) + " " + data["bill_name"].astype(str)
 	# Reorder columns
 	data = data[["state_name", "state", "bill_id", "bill_name", "keep", "original_text", "cleaned_text", "summary", "summary_source", "category", "status", "link"]]
 	# Make a csv of all the data
-	data.to_csv(Path().absolute().parents[0]/Path("modified_data")/"text_and_summaries_all.csv", index = False)
+	data.to_csv("../../modified_data/text_and_summaries_all.csv", index = False)
 	# Remove columns without text or summary
-	filtered_data = data[data["summary"] == 1]
+	filtered_data = data[data["keep"] == 1]
 	# Make a csv of the filtered data
-	filtered_data.to_csv(Path().absolute().parents[0]/Path("modified_data")/"text_and_summaries_filtered.csv", index = False)
+	filtered_data.to_csv("../../modified_data/text_and_summaries_filtered.csv", index = False)
