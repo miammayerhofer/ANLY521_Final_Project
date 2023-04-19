@@ -1,6 +1,5 @@
 import pandas as pd
 import re
-import wordninja
 from math import log
 
 
@@ -37,13 +36,55 @@ def import_summaries():
     summaries = pd.read_csv("../../modified_data/summaries.csv")
     return summaries
 
+def initial_cleaning(text):
+	""" 
+	Function to initial clean the bill text before infering spaces
+	Params:
+		text: a string of bill text
+	"""
+    # Remove all spaces and convert to lower case
+	text = re.sub(r'\s+', "", text.lower())
+    # Find the section headers and flag them with the phrase "sectionheaderflag" for future splitting
+	header_expressions = [r'hb\d+', r'\\[a-z]+\b', r'\\\d+\b', r'hb\d+', r'sb\d+', r'hf\d+', r'sf\d+', r'\d+']
+	for exp in header_expressions:
+		text = re.sub(exp, "sectionheaderflag", text)
+    # Remove additional punctuation
+	final_text = re.sub(r'[^\w\s]', "", text)
+	return final_text
+
+def infer_spaces(s, worcost, maxword):
+    """Uses dynamic programming to infer the location of spaces in a string without spaces
+    Source code: https://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
+    """
+    # Find the best match for the i first characters, assuming cost has
+    # been built for the i-1 first characters.
+    # Returns a pair (match_cost, match_length).
+	# Prepare string (lower and remove all spaces)
+    def best_match(i):
+        candidates = enumerate(reversed(cost[max(0, i-maxword):i]))
+        return min((c + wordcost.get(s[i-k-1:i], 9e999), k+1) for k,c in candidates)
+    # Build the cost array.
+    cost = [0]
+    for i in range(1,len(s)+1):
+        c,k = best_match(i)
+        cost.append(c)
+    # Backtrack to recover the minimal-cost string.
+    out = []
+    i = len(s)
+    while i>0:
+        c,k = best_match(i)
+        assert c == cost[i]
+        out.append(s[i-k:i])
+        i -= k
+    return " ".join(reversed(out))
+
 def text_shortener(bill_text):
 	"""
-	This function performs several operations to shorten the bill texts:
-		- only begin bill on a phrase that marks the start of the bill text (e.g. 'be enacted by...')
-		- remove section headers
-		- remove odd patterns
-		- remove sections of multiple spaces
+	Function to shorten bills so that they only begin on a phrase that marks the start of the bill text 
+	(e.g. 'be enacted by...'); other uneccesary phrases will be removed too; section headers will be 
+	replaced with numbers to be split on during document splitting
+	Params:
+		bill_text: a string of bill text
 	"""
 	enact_str = r"be it enacted by|enact as follows|state of [a-z]+ enact|assembly of [a-z ]+ enact"
 	# Find where the bill is enacted
@@ -58,66 +99,32 @@ def text_shortener(bill_text):
 	else:
 		first_section_index = 0
 	shortened_str = shortened_str[first_section_index:]
-	# Remove all instances of more than 1 space
-	shortened_str = re.sub(r'\s{2,}', ' ', shortened_str)
     # Common phrase among bill to remove
-	shortened_str = re.sub(r'NewTextUnderlinedDELETEDTEXTBRACKETED', ' ', shortened_str, flags = re.IGNORECASE)
-	shortened_str = re.sub(r'New Text Underlined DELETED TEXT BRACKETED', ' ', shortened_str, flags = re.IGNORECASE)
-	# Remove section headers
-	shortened_str = re.sub(r'sec \w+ ', ' ', shortened_str, flags = re.IGNORECASE)
-	shortened_str = re.sub(r'section \w+ ', ' ', shortened_str, flags = re.IGNORECASE)
-	# Remove strange section header pattern noticed in a few bills
-	shortened_str = re.sub(r'\\[A-Za-z]+\b', ' ', shortened_str, flags = re.IGNORECASE)
-	# Remove digits and strings of digits
-	shortened_str = re.sub(r' [0-9]+ | [0-9]+[A-Z] ', ' ', shortened_str)
-	shortened_str = re.sub(r'\b\d+\b', ' ', shortened_str)
-	# Remove any patterns of multiple capital letters separated by spaces: "A A A"
-	shortened_str = re.sub(r'\b[A-Z](?:\s+[A-Z])+\b', ' ', shortened_str)
-	shortened_str = re.sub(r'\d+', ' ', shortened_str)
-	# Remove all instances of more than 1 space
-	shortened_str = re.sub(r'\s{2,}', ' ', shortened_str)
-	return shortened_str.strip()
+	s = re.sub(r'new text underlined deleted text bracketed', ' ', shortened_str, flags = re.IGNORECASE)
+	# Remove any patterns of multiple letters separated by spaces: "a a a" or "aa"
+	s = re.sub(r'\b(\w)\s?\1\s?\1\b', ' ', s)
+	# Remove all single letter characters remaining except for "a" and "i" because those are actual full words
+	s = re.sub(r'(?<!\b[a])\b\w\b(?!([a]\b|\w))', '', s)
+	# Replace section headers with a period for splitting
+	s = s.replace("section header flag", ".")
+	# Returned shortened string
+	return s.strip()
 
-def infer_spaces(bill_text, wordcost, maxword):
-	"""Uses dynamic programming to infer the location of spaces in a string without spaces - basis of wordninja code
-	Source code: https://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
-	"""
-	# Prepare string (lower and remove all spaces)
-	s = bill_text.lower()
-	s = re.sub(r'\s+', "", s)
-	def best_match(i):
-		"""
-		Find the best match for the i first characters, assuming cost has been built for the i-1 first characters
-		Returns a pair (match_cost, match_length)
-		"""
-		candidates = enumerate(reversed(cost[max(0, i-maxword):i]))
-		return min((c + wordcost.get(s[i-k-1:i], 9e999), k+1) for k,c in candidates)
-	# Build cost array
-	cost = [0]
-	for i in range(1,len(s)+1):
-		c,k = best_match(i)
-		cost.append(c)
-    # Backtrack to recover the minimal-cost string
-	out = []
-	i = len(s)
-	while i>0:
-		c,k = best_match(i)
-		assert c == cost[i]
-		out.append(s[i-k:i])
-		i -= k
-	return " ".join(reversed(out))
-
-def word_ninja_tokenize(string):
-	""" Function to tokenize each line of a bill with word ninja """
-	# Remove spaces
-	stripped = string.replace(' ', '')
-	# Use word ninja to infer words
-	inferred_words = wordninja.split(stripped)
-	# Join words back together
-	cleaned_text = ' '.join(inferred_words)
-	return cleaned_text
+def splitter(text):
+    """ 
+    Function to split the clean bills into their section chunks
+    Params:
+        text: a string of text of a bill
+    """
+    split_text = text.split(".")
+    split_text_stripped = [phrase.strip()for phrase in split_text]
+    final_text_list = list(filter(lambda x: x != '', split_text_stripped))
+    return final_text_list
 
 def merge_data():
+	"""
+	Function to merge the aclu, summary, and bill data into one data frame
+	"""
 	# Get the bill text
 	bill_text_data = import_bill_texts()
     # Get the ACLU table
@@ -135,19 +142,18 @@ def merge_data():
 if __name__ == "__main__":
 	data = merge_data()
 	# Build a cost dictionary, assuming Zipf's law and cost = -math.log(probability)
-	words = open("../../modified_data/words-by-frequency.txt").read().split()
+	words = open("../../modified_data/our_words.txt").read().split()
 	wordcost = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
 	maxword = max(len(x) for x in words)
-	# Use word ninja to clean words that might be separated and shorten the text
-	data["cleaned_text"] = data["original_text"].apply(lambda x: text_shortener(x))
-	data["cleaned_text"] = data["cleaned_text"].apply(lambda x: infer_spaces(x, wordcost, maxword))
+	# Clean the text
+	# Inital clean -> infer the spaces -> shorten the text -> split it
+	data["cleaned_text"] = data["original_text"].apply(lambda x: text_shortener(infer_spaces(initial_cleaning(x), wordcost, maxword)))
+	data["split_cleaned_text"] = data["cleaned_text"].apply(lambda x: splitter(x))
 	# Combine state and bill name columns into id column
 	data["bill_id"] = data["state"].astype(str) + " " + data["bill_name"].astype(str)
-	# Reorder columns
-	data = data[["state_name", "state", "bill_id", "bill_name", "keep", "original_text", "cleaned_text", "summary", "summary_source", "category", "status", "link"]]
-	# Make a csv of all the data
-	data.to_csv("../../modified_data/text_and_summaries_all.csv", index = False)
 	# Remove columns without text or summary
 	filtered_data = data[data["keep"] == 1]
+	# Reorder columns
+	filtered_data = filtered_data[["state_name", "state", "bill_id", "bill_name", "original_text", "cleaned_text", "split_cleaned_text", "summary", "summary_source", "category", "status", "link"]]
 	# Make a csv of the filtered data
 	filtered_data.to_csv("../../modified_data/text_and_summaries_filtered.csv", index = False)
