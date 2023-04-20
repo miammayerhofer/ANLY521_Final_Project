@@ -60,5 +60,7 @@ if __name__ == "__main__":
     logger.info(f'\n{results}')
     outputName = os.path.join(args.outdir, f'rouge_results_{timeTag}.csv')
     logger.info(f'Saving results: {outputName}')
-    results.to_csv(outputName)
+    
+    df[['text', 'reference_summary', 'bill_id', 'dataset_type', 'model_summary', 'rouge-1.r', 'rouge-1.p', 'rouge-1.f',
+        'rouge-2.r', 'rouge-2.p', 'rouge-2.f', 'rouge-l.r', 'rouge-l.p','rouge-l.f']].to_csv(outputName, index = False)
     
