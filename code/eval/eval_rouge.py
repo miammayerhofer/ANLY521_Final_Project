@@ -39,8 +39,8 @@ if __name__ == "__main__":
 
     logger.info('Read in data. Converting model summary into proper formatting')
     # Format the model summary column
-    df['model_summary'] = df['model_summary'].apply(lambda x: ast.literal_eval(x))
-    df['model_summary'] = df['model_summary'].apply(lambda x: ' '.join(x))
+    #df['model_summary'] = df['model_summary'].apply(lambda x: ast.literal_eval(x))
+    #df['model_summary'] = df['model_summary'].apply(lambda x: ' '.join(x))
 
     # Initialize rouge
     rouge = Rouge()
