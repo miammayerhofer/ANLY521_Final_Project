@@ -1,0 +1,18 @@
+2023-04-24 22:25:47,217 - INFO - Running Rouge evaluation script
+2023-04-24 22:25:47,217 - INFO - Input file: ../../modified_data/model_and_reference_summaries_not_split.csv
+2023-04-24 22:25:47,217 - INFO - Output directory: ../../rouge_results
+2023-04-24 22:25:47,280 - INFO - Read in data. Converting model summary into proper formatting
+2023-04-24 22:25:47,280 - INFO - Computing Rouge scores
+2023-04-24 22:25:49,030 - INFO - Breakdown of rouge scores by dataset type
+2023-04-24 22:25:49,046 - INFO - 
+dataset_type      test     train
+rouge-1.r     0.255127  0.282364
+rouge-1.p     0.247986  0.247706
+rouge-1.f     0.223423  0.242229
+rouge-2.r     0.086254  0.093906
+rouge-2.p     0.076950  0.081088
+rouge-2.f     0.070099  0.078474
+rouge-l.r     0.230389  0.242849
+rouge-l.p     0.218861  0.214838
+rouge-l.f     0.199195  0.209372
+2023-04-24 22:25:49,048 - INFO - Saving results: ../../rouge_results\rouge_results_20230424_22_25_47.csv

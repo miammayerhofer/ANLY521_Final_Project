@@ -47,7 +47,10 @@ if __name__ == "__main__":
 
     # Compute scores
     logger.info('Computing Rouge scores')
-    df['scores'] = df.apply(lambda x: rouge.get_scores(x['model_summary'], x['reference_summary']), axis = 1)
+    try:
+        df['scores'] = df.apply(lambda x: rouge.get_scores(x['model_summary'], x['reference_summary']), axis = 1)
+    except:
+        df['scores'] = df.apply(lambda x: rouge.get_scores(x['model_summary'], x['summary']), axis = 1)
     result = [pd.json_normalize(i) for i in df['scores']]
     result = pd.concat(result, ignore_index = True)
 
@@ -61,6 +64,10 @@ if __name__ == "__main__":
     outputName = os.path.join(args.outdir, f'rouge_results_{timeTag}.csv')
     logger.info(f'Saving results: {outputName}')
     
-    df[['text', 'reference_summary', 'bill_id', 'dataset_type', 'model_summary', 'rouge-1.r', 'rouge-1.p', 'rouge-1.f',
-        'rouge-2.r', 'rouge-2.p', 'rouge-2.f', 'rouge-l.r', 'rouge-l.p','rouge-l.f']].to_csv(outputName, index = False)
+    try:
+        df[['text', 'reference_summary', 'bill_id', 'dataset_type', 'model_summary', 'rouge-1.r', 'rouge-1.p', 'rouge-1.f',
+            'rouge-2.r', 'rouge-2.p', 'rouge-2.f', 'rouge-l.r', 'rouge-l.p','rouge-l.f']].to_csv(outputName, index = False)
+    except:
+        df[['text', 'summary', 'title', 'dataset_type', 'model_summary', 'rouge-1.r', 'rouge-1.p', 'rouge-1.f',
+            'rouge-2.r', 'rouge-2.p', 'rouge-2.f', 'rouge-l.r', 'rouge-l.p','rouge-l.f']].to_csv(outputName, index = False)
     
