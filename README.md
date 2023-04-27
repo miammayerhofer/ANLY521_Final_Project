@@ -9,6 +9,8 @@ An important takeaway is that LM token limitations can be mitigated by splitting
 
 ### How to Install and Run the Project
 
+### Package Structure
+
 ### How to Use the Project
 
 ### References
