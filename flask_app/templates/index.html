@@ -1,0 +1,59 @@
+<!-- For the homepage that contains the input of the application --> 
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Anti-LGBTQ+ Legislation Summarizer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- linking to the external styling file-->
+<link rel="stylesheet"  href="{{ url_for('static', filename='w3.css') }}">
+</style>
+</head>
+<body>
+<!-- Navigation Bar-->
+<div class="w3-bar w3-dark-slate-blue w3-padding">
+  <a href="{{url_for('index')}}" class="w3-bar-item w3-button w3-padding ">Home</a>
+  <a href="https://github.com/miammayerhofer/ANLY521_Final_Project" class="w3-bar-item w3-button w3-right w3-padding" >GitHub <i class="fa fa-github-square fa-2x"></i> </a>
+</div>
+<br>
+<!-- Start of Main Section -->
+<div class="w3-container w3-center"><h3>Enter Bill Text</h3>
+<!-- text input-->
+ <form method="POST" action="/process">
+ <textarea  name="input_text" cols="5" rows="10"  required="true" placeholder="Enter Text Here" style="width:60%"></textarea>
+            
+         <br/>
+         <!-- select the model choice -->
+         <p><h4>Select your Algorithm</h4></p>
+          <select class="w3-select w3-border w3-round-large"  name="model_choice" id="model_choice" style="width:40%">        
+            <option value="t5-split"  selected>Abstractive Summarization WITH Dynamic Text Splitting</option>
+            <option value="t5-no-split" >Abstractive Summarization WITHOUT Dynamic Text Splitting</option>
+          </select>
+   <br>
+   <br>
+<button class="w3-btn w3-light-grey" type="reset" value="reset">Clear Text</button>
+<button class="w3-btn w3-dark-slate-blue" type="submit" value="reset">Summarize!</button>
+   
+  </div>
+</form>
+</div>
+<br><br>
+<!-- footer -->
+<div class="w3-container w3-dark-slate-blue">
+<div class="w3-row">
+<div class="w3-half w3-container">
+          <h4 >About our Summarizer:</h4>
+          <p>The 2 abstractive summarization models use the T5 Small Text-to-Text Transfer Transformer developed by Google with a HuggingFace summarization pipeline. The models are catered to anti-LGBTQ+ legislation.</p>
+          <p><b>Creators: </b>Corrina Calanoc, Mia Mayerhofer, Madelyne Ventura, and Paul Wang</p>
+</div>
+      
+   <div class="w3-half w3-container">
+    <h4 >About the App:</h4>
+    <p>The app was built with Flask framework, w3.css (modern css framework), and our custom abstractive summarization models. The link to our GitHub repository is located in the top right corner of the page.</p>
+    <p><b>Flask Template Source: </b><a href = "https://alaminmusamagaga.medium.com/text-summarization-app-with-flask-and-sumy-92212bd05705" target="_blank" class="white-text"> Link</a></p>
+    </div>
+</div>
+<br>
+    </div>
+</body>
+</html>

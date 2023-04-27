@@ -1,0 +1,48 @@
+<!-- For outputing the summarized text --> 
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <title>Summary Prediction</title>
+<!-- linking the index.html file to the styling folder-->
+<link rel="stylesheet"  href="{{ url_for('static', filename='w3.css') }}">
+ <style type="text/css">
+</style>
+</head>
+<body>
+<div class='w3-padding w3-dark-slate-blue w3-center'><h1>Bill Text Summarization Result</h1></div>
+  
+</form>
+</div>
+</div>
+<div class="w3-container w3-padding-24">
+<div class="w3-container w3-card">
+ <div class="w3-row">
+<div class="w3-half w3-container ">
+    <h5>Original Text</h5>
+             <p>Summary Reading Time: <span class=w3-text-indigo> {{ final_reading_time }} minute(s) </span></p>
+             <p >{{ctext}}</p>
+            
+</div>
+<div class="w3-half w3-container dark-slate-blue">
+    <h5>Summarized Text</h5>
+              
+              <p>Reading Time: <span class=w3-text-indigo>{{ summary_reading_time }} minute(s) </span></p>
+              <p>Algorithm Run Time: <span class=w3-text-indigo>{{ final_time }} second(s) </span></p>
+        
+            <p>{{ final_summary }}</p>
+            
+          
+  </div>
+</div>
+</div>
+</div>
+</div>
+<!-- back button-->
+ <div class="w3-center">
+<a href="{{url_for('index')}}" style="text-decoration:none">
+<button class="w3-btn w3-dark-slate-blue w3-round-large" style="width:10%;text-decoration:none;" type="submit" value="reset">Back</button></a></div>
+<br>
+</div>
+</body>
+</html>
