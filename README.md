@@ -1,3 +1,2 @@
-# BASL
-### Bill Abstractive Summarizer for LGBTQ+ Related Legislation
+# BASL - Bill Abstractive Summarizer for LGBTQ+ Related Legislation
 
