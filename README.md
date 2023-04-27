@@ -1,1 +1,3 @@
-# ANLY521_Final_Project
+# BASL
+### Bill Abstractive Summarizer for LGBTQ+ Related Legislation
+
