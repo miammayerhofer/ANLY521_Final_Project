@@ -1,0 +1,5 @@
+__pycache__
+.DS_Store
+**/__pycache__*
+*/__pycache__/.*
+abs_summarizer/util/__pycache__/*
