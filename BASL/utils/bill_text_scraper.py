@@ -1,17 +1,29 @@
-from PyPDF2 import PdfReader
 import os
-import pandas as pd
 import re
 import zlib
-from pathlib import Path
+import logging
+import time
+import argparse
+import pandas as pd
 
+from PyPDF2 import PdfReader
+
+def setup_logger(log_file_name, log_dir_path):
+    """ Function for logging this script """
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    log_file_path = os.path.join(log_dir_path, log_file_name)
+    file_handler = logging.FileHandler(log_file_path)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
 
 def read_files():
-    # Set the initial starting path for the bill pdfs
+    """ Funciton to read in the bill PDFs and scrape the text """
+    # Set the initial starting path for the bill pdfs and go through each
     path = "../raw_data/"
-    # Store bill names and texts lists
     bill_states, bill_names, bill_texts = [], [], []
-    # go through all the files
     for filename in os.listdir(path):
         # Prep for opening the PDF
         filename_lower = filename.lower()
@@ -26,9 +38,8 @@ def read_files():
             # Add bill names to list
             filename_split2 = filename_split1[1].split(".")
             bill_names.append(filename_split2[0])
-    # Make a dictionary
+    # Make a dictionary and convert to a data frame
     bills_dict = {"state": bill_states, "bill_name": bill_names, "text": bill_texts}
-    # Convert to data frame
     bills_df = pd.DataFrame(bills_dict)
     # Sort bills in order by state
     bills_df = bills_df.sort_values("state").reset_index(drop = True)
@@ -40,7 +51,6 @@ def scrape_text(path, file_name):
     """ Given a PDF's file name, returns the raw text of that file """
     # Open the current PDF file
     pdf = open(os.path.join(path, file_name), "rb")
-    # Make an empty string to get the full text
     full_page_text = ''
     # If this PDF is a texas file, we need to use FlateDecode to decode the file
     if file_name.startswith("tx"):
@@ -73,10 +83,8 @@ def scrape_text(path, file_name):
         for page_number in range(len(pdf_reader.pages)):
             # Extract the text from the current page
             page_text = pdf_reader.pages[page_number].extract_text()
-
             # Remove new lines
             page_text = re.sub(r'\n', ' ', page_text)
-
             # Getting rid of non-ascii characters
             page_text = re.sub(r"â??", "", page_text)
             page_text = page_text.encode('ascii', 'ignore').decode('ascii')
@@ -89,10 +97,25 @@ def scrape_text(path, file_name):
 
 
 if __name__ == "__main__":
-    # Read in the pdfs
+
+    startTime = time.time()
+    timeTag = time.strftime('%Y%m%d_%H_%M_%S')
+
+    # Read arguments
+    parser = argparse.ArgumentParser(description = "Code to scrape the bill text from each of their PDFs")
+    parser.add_argument("-o", "--outdir", required = True, help = "Path to logging")
+    args = parser.parse_args()
+
+    # Begin logger
+    logger = setup_logger(f"log_{timeTag}.log", args.outdir)
+    logger.info("Running bill text scraper script.")
+    logger.info(f"Output directory: {args.outdir}")
+
+    # Read in the pdfs and make a csv file to store them
+    logger.info("Getting all of the bill text into a data frame.")
     bills_df = read_files()
-    # Make a csv file
-    bills_df.to_csv(Path().absolute().parents[0]/Path("modified_data")/"bill_texts.csv", index = False)
+    logger.info(f"\n{bills_df}")
+    bills_df.to_csv("../modified_data/bill_texts.csv", index = False)
 
 
 
