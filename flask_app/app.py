@@ -1,11 +1,7 @@
-"""
-In terminal:
-python -m spacy info
-python -m pip freeze | grep spacy
-python -m spacy download en_core_web_sm
-Source: https://alaminmusamagaga.medium.com/text-summarization-app-with-flask-and-sumy-92212bd05705
-"""
+# Template Source: https://alaminmusamagaga.medium.com/text-summarization-app-with-flask-and-sumy-92212bd05705
+
 import time
+import spacy
 import numpy as np
 
 from math import log
@@ -13,9 +9,11 @@ from flask import Flask,render_template,url_for,request
 from transformers import AutoTokenizer, pipeline
 from bill_text_cleaner_splitter import BillTextCleaner, BillTextSplitter
 
+nlp = spacy.load("en_core_web_sm")
 app = Flask(__name__)
 
 def summarizer(split_text, model_type):
+   """Function to calculate the summary from the cleaned input text depending on the input model"""
    model_summary = ""
    if model_type == "t5-split":
       # Build the summarizer pipeline
@@ -31,14 +29,16 @@ def summarizer(split_text, model_type):
    return model_summary
 
 def text_preprocessing(text):
-  words = open("our_words.txt").read().split()
-  wordcost = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
-  maxword = max(len(x) for x in words)
-  clean_text = BillTextCleaner(text, wordcost, maxword).get_clean_text()
-  split_clean_text = BillTextSplitter(clean_text).get_split_text()
-  return split_clean_text
+   """Function to process the bill text"""
+   words = open("our_words.txt").read().split()
+   wordcost = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
+   maxword = max(len(x) for x in words)
+   clean_text = BillTextCleaner(text, wordcost, maxword).get_clean_text()
+   split_clean_text = BillTextSplitter(clean_text).get_split_text()
+   return split_clean_text
 
 def doc_splitter(split_text):
+   """Function to dynamically split the text to abide by the 512 token limit"""
    # Define tokenizer
    checkpoint = "t5-small"
    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
@@ -50,17 +50,20 @@ def doc_splitter(split_text):
    idx_list = []
    for i,l in enumerate(token_list_len):
       if total_sum + l + 1 > 512: 
-         idx_list.append(i) # add split location to list of indices for splitting
-         total_sum = 0 # reset to 0
+         # Add split location to list of indices for splitting
+         idx_list.append(i) 
+         # Reset to 0
+         total_sum = 0 
       total_sum += l
    # Split into chunks
    return [list(i) for i in np.split(np.array(split_text), idx_list)]
 
-# Reading Time
 def readingTime(mytext):
+   """Function to calculate the reading time of the bill text and summary"""
    total_words = len([ token.text for token in nlp(mytext)])
    estimatedTime = total_words/200.0
    return estimatedTime
+
 @app.route('/')
 def index():
    return render_template("index.html")
