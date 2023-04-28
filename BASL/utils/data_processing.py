@@ -181,7 +181,7 @@ if __name__ == "__main__":
 	# Read arguments
 	parser = argparse.ArgumentParser(description="Code to evaluate fuzzy matching")
 	parser.add_argument("-i", "--indir", required=True, help="Path to input files (ACLU text, bill text, etc.)")
-	parser.add_argument("-s", "--split", help="Path to machine summaries data", action='store_false') # default is run doc split
+	parser.add_argument("-s", "--split", help="Path to machine summaries data", action='store_false') # default is run non-doc split
 	parser.add_argument("-o", "--outdir", required=True, help="Path to output and logging")
 	args = parser.parse_args()	
 
