@@ -1,36 +1,46 @@
-import abs_summarizer.abstractive_bill_summarizer as abs
+import argparse
+from pathlib import Path
+# from BASL.abs_summarizer import abs_summarizer
 import pandas as pd
 import datasets
 
-from pathlib import Path
-from sklearn.model_selection import train_test_split
-
+# run script with `python main.py -nosplit file_name.csv`
 if __name__ == "__main__":
+    # the script requires a CSV file containing the bill texts 
+    parser = argparse.ArgumentParser(
+        description="Whether to use summarizer that splits documents or not")
+    parser.add_argument("filename", help="File name with bill texts")
+    parser.add_argument("-nosplit", '--nosplit_flag', help="Model type", action = 'store_true')
+    args = parser.parse_args()
 
-    # Load data
-    data = pd.read_csv(Path().absolute().parents[1]/Path("modified_data")/"text_and_summaries_filtered_split.csv")
-    no_summary_filter = data.state == "IN" # subset to just one state for the test run
-    all_text = data[no_summary_filter].copy(deep=True)
-    cols_keep = ["state", "state_name", "bill_name", "summary", "doc_number", "split_text"]
-    data = data[cols_keep]
-    data.rename({"bill_name": "title", "split_text": "text",}, axis = "columns", inplace = True)
+    # establish data directory and read in data
+    data_dir = Path().absolute().parents[1]/Path("modified_data")
+    input_file = Path(args.filename)
+    df = pd.read_csv(data_dir/args.filename)
+    
+    # if the nosplit flag was turned on then use the summarizer that doesn't implement document splitting
+    if args.nosplit_flag:
+        model_output_path = Path().absolute()/'models'/'summarizer_model_not-split'   
+    else:
+        model_output_path = Path().absolute()/'models'/'summarizer_model'
 
-    # Split data
-    train, test = train_test_split(data[["text", "summary"]], test_size = 0.2)
-    train_dataset = datasets.Dataset.from_dict(train.astype(str))
-    test_dataset = datasets.Dataset.from_dict(test.astype(str))
+    # create the dataset to pass into the summarizer    
+    train_df = df[df.dataset_type == 'train']
+    test_df = df[df.dataset_type == 'test']
+    train_dataset = datasets.Dataset.from_dict(train_df)
+    test_dataset = datasets.Dataset.from_dict(test_df)
     billsum = datasets.DatasetDict({"train": train_dataset, "test": test_dataset})
 
-    # Set inputs for model object
-    output_directory_path = Path().absolute().parents[1]/Path("modified_data")
-    model_directory_path =  Path().absolute()/Path("summarizer_model")
-    checkpoint = "t5-small"
-
-    # Define summarizer model
-    model = abs.AbstractiveBillSummarizer(output_directory_path, checkpoint, billsum)
-    model.train()
-    model.save(model_directory_path)
-    # Test on a bill
-    test_bill = data[(data.state == "IN") & (data.title == "HB1118")]
-    model.test(test_bill)
+    # create the summarizer object
+    my_summarizer = AbstractiveBillSummarizer(output_directory_path = model_output_path,
+        checkpoint = 't5-small',
+        billsum_dataset = billsum
+        )
+    my_summarizer.model_directory = model_output_path
+    # run the summaries
+    summaries = my_summarizer.test(df)
+    df['model_summary'] = summaries
+    # write the new file with a suffix indicating its the output of the model
+    new_file_name = input_file.stem + '(model_output)' + input_file.suffix
+    df.to_csv(data_dir/new_file_name)
 
