@@ -5,15 +5,15 @@
 
 BASL is a Python package that summarizes legal text related to anti-LGBTQ+ legislation. The package contains two summarization models. One model is employed with dynamic text splitting and one without. 
 
-The models are trained using Google's T5 Test-to-Text Transfer Transformer with a HuggingFace summarization pipeline. T5 is similar to BERT (Bidirectional Encoder Representations from Transformers ) in that it is trained using MLM (masked language modeling). The main difference is that T5 masks multiple consecutive words instead of just one, which makes it better suited for text-to-text problems. 
+BASL's models are trained using Google's T5 Test-to-Text Transfer Transformer with a HuggingFace summarization pipeline. T5 is similar to BERT (Bidirectional Encoder Representations from Transformers ) in that it is trained using MLM (masked language modeling). The main difference is that T5 masks multiple consecutive words instead of just one, which makes it better suited for text-to-text problems. 
 
 We have evaluated the models using the ROUGE scoring metric, although we acknowledge that ROUGE evaluation may not be the best fit for abstractive summarization because it is rigid and does not capture semantic meaning. 
 
-For our final product, we have employed a Flask application with our summarizer models. 
+For our final product, we have employed a Flask application with our BASL summarizer models. 
 
-### How to Install and Run the Project
+### How to Install and Run BASL
 
-### Package Structure
+### BASL Package Structure
 
 ```.
 ├── BASL/
@@ -43,7 +43,7 @@ For our final product, we have employed a Flask application with our summarizer 
 * How to run tests:
 Navigate to the `/tests` directory, and run the command `python -m pytest tests/`
 
-### How to Use the Project
+### How to Use BASL
 
 ### Future Steps 
 
