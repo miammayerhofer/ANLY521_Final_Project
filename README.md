@@ -17,12 +17,6 @@ _Application_
 
 For our final product, we have employed a Flask application with our BASL summarizer models. 
 
-### How to Install and Run BASL
-
-```
-pip install -e .
-```
-
 ### BASL Package Structure
 
 ```.
@@ -50,14 +44,28 @@ pip install -e .
 
 ```
 
+### How to Install and Run BASL
+
+To install this package, clone this directory into your machine and run the following command:
+
+```
+pip install -e .
+```
+
 ### How to Use BASL
 
-Download the following folders locally and place them in `BASL/models/` to run the package.
+**Important:** Download the following folders locally and place them in `BASL/models/` to run the package.
 
 * summarizer_model_not-split/ https://drive.google.com/drive/folders/1--elIUBVds11Rz72prPNaNp9WDR-DKJ3
 * summarizer_model/ https://drive.google.com/drive/folders/1bXGRq1weuXmzy7W_yLtjSzLkD4ndjE9y
 
+To run the model (after download) create summaries *without* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered -nosplit`
+
+To run the model (after download) create summaries *with* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered`
+
 To run tests, navigate to the `/tests` directory, and run the command `python -m pytest tests/`
+
+To run Rouge evaluation on completed model summaries from the `/eval` directory, run the command `python eval_rouge.py -f ../modified_data/model_and_reference_summaries_split.csv -o ../modified_data`
 
 ### Future Steps 
 
