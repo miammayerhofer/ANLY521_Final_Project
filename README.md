@@ -50,10 +50,16 @@ pip install -e .
 
 ```
 
-* How to run tests:
-Navigate to the `/tests` directory, and run the command `python -m pytest tests/`
-
 ### How to Use BASL
+
+Download the following folders locally and place them in `BASL/` to run the package.
+
+* summarizer_model_not-split/ https://drive.google.com/drive/folders/1--elIUBVds11Rz72prPNaNp9WDR-DKJ3
+* summarizer_model/ https://drive.google.com/drive/folders/1bXGRq1weuXmzy7W_yLtjSzLkD4ndjE9y
+* modified_data/ https://drive.google.com/drive/folders/1BuWnLoZtHyvjHW9iYeiLFHl41eu07XLw
+* rouge_results/ https://drive.google.com/drive/folders/1okiD-jCQiDuCSdNlC0c59KtSYx6QXX8W
+
+To run tests, navigate to the `/tests` directory, and run the command `python -m pytest tests/`
 
 ### Future Steps 
 
