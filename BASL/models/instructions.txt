@@ -1,0 +1,7 @@
+See README for instructions on how to download model folders
+Required structure for package to work:
+├── BASL/
+│   ├── models/
+│   ├───── summarizer_model/
+│   └───── summarizer_model_not-split/
+└── ... 
