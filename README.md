@@ -22,8 +22,6 @@ For our final product, we have employed a Flask application with our BASL summar
 ```.
 ├── BASL/
 │   ├── README.md
-│   ├── abs_summarizer/
-│   ├── abs_summarizer.egg-info/
 │   ├── bin/
 │   ├── data_preprocessing/
 │   ├── environment.yml
@@ -35,12 +33,13 @@ For our final product, we have employed a Flask application with our BASL summar
 │   ├── setup.py
 │   ├── tests/
 │   └── utils/
-├── code/
 ├── flask_app/
-├── modified_data/
-├── raw_data/
-├── README.md
-└── rouge_results/
+│   ├── static/
+│   ├── templates/
+│   ├── app.py
+│   ├── bill_text_cleaner_splitter.py
+│   └── our_words.py
+└── README.md
 
 ```
 
