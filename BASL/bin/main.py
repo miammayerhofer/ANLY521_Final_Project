@@ -3,7 +3,7 @@ from pathlib import Path
 # from BASL.abs_summarizer import abs_summarizer
 # from abs_summarizer.abstractive_bill_summarizer import AbstractiveBillSummarizer
 # import abs_summarizer
-from abs_summarizer import abstractive_bill_summarizer
+from BASL.abstractive_bill_summarizer import AbstractiveBillSummarizer
 import pandas as pd
 import datasets
 import os
@@ -21,7 +21,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # establish data directory and read in data
-    data_dir = Path().absolute().parents[1]/Path("modified_data")
+    # depending where this script is used it will navigate to find the /raw_data folder differently
+    path_parts = Path().absolute().parts
+    if Path().absolute().name == 'BASL':
+        path = Path().absolute()/"raw_data"
+    elif path_parts[len(path_parts)-2] == 'BASL':
+        path = Path().absolute().parents[0]/"raw_data"
+    data_dir = Path().absolute()/Path("modified_data")
     input_file = Path(args.filename)
     df = pd.read_csv(data_dir/args.filename)
     
@@ -35,14 +41,15 @@ if __name__ == "__main__":
     # create the dataset to pass into the summarizer    
     # train df will be arbitrary since we're not training the model and test will be the entire dataset
     df = df[['state', 'text', 'summary', 'bill_id']]
-    train_df = df.head()
+    train_df = df.head().copy(deep=True)
     test_df = df.copy(deep=True)
+    print(test_df.head())
     train_dataset = datasets.Dataset.from_dict(train_df)
-    test_dataset = datasets.Dataset.from_dict(test_df)
+    test_dataset = datasets.Dataset.from_dict(test_df.astype(str))
     billsum = datasets.DatasetDict({"train": train_dataset, "test": test_dataset})
 
     # create the summarizer object
-    my_summarizer = abs_summarizer.AbstractiveBillSummarizer(output_directory_path = model_output_path,
+    my_summarizer = AbstractiveBillSummarizer(output_directory_path = model_output_path,
         checkpoint = 't5-small',
         billsum_dataset = billsum
         )

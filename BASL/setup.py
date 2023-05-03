@@ -3,7 +3,7 @@ import setuptools
 with open('README.md', 'r') as f:
     long_description = f.read()
 setuptools.setup(
-    name = "abs_summarizer",
+    name = "BASL",
     version='0.0.1',
     author='Corrina Calanoc, Mia Mayerhofer, Madelyne Ventura, and Paul Wang',
     author_email='',

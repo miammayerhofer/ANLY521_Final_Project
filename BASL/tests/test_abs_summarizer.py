@@ -2,7 +2,8 @@ from pathlib import Path
 from utils.bill_text_scraper import *
 from utils.bill_text_cleaner_splitter import *
 from utils.aclu_table_scraper import *
-from abs_summarizer.abstractive_bill_summarizer import AbstractiveBillSummarizer
+# from abs_summarizer.abstractive_bill_summarizer import AbstractiveBillSummarizer
+from BASL.abstractive_bill_summarizer import AbstractiveBillSummarizer
 import numpy as np
 import unittest
 import pytest

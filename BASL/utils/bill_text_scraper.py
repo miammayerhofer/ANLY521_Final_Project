@@ -5,6 +5,7 @@ import logging
 import time
 import argparse
 import pandas as pd
+from pathlib import Path
 
 from PyPDF2 import PdfReader
 
@@ -22,7 +23,12 @@ def setup_logger(log_file_name, log_dir_path):
 def read_files():
     """ Funciton to read in the bill PDFs and scrape the text """
     # Set the initial starting path for the bill pdfs and go through each
-    path = "../raw_data/"
+    # depending where this script is used it will navigate to find the /raw_data folder differently
+    path_parts = Path().absolute().parts
+    if Path().absolute().name == 'BASL':
+        path = Path().absolute()/"raw_data"
+    elif path_parts[len(path_parts)-2] == 'BASL':
+        path = Path().absolute().parents[0]/"raw_data"
     bill_states, bill_names, bill_texts = [], [], []
     for filename in os.listdir(path):
         # Prep for opening the PDF
