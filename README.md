@@ -60,7 +60,7 @@ pip install -e .
 
 To run the model (after download) create summaries *without* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered.csv -nosplit`
 
-To run the model (after download) create summaries *with* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered.csv`
+To run the model (after download) create summaries *with* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered_split.csv`
 
 To run tests, navigate to the `/tests` directory, and run the command `python -m pytest tests/`
 
