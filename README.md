@@ -58,9 +58,9 @@ pip install -e .
 * summarizer_model_not-split/ https://drive.google.com/drive/folders/1--elIUBVds11Rz72prPNaNp9WDR-DKJ3
 * summarizer_model/ https://drive.google.com/drive/folders/1bXGRq1weuXmzy7W_yLtjSzLkD4ndjE9y
 
-To run the model (after download) create summaries *without* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered -nosplit`
+To run the model (after download) create summaries *without* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered.csv -nosplit`
 
-To run the model (after download) create summaries *with* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered`
+To run the model (after download) create summaries *with* splitting, navigate to the `/bin` directory and run the command `python main.py text_and_summaries_filtered.csv`
 
 To run tests, navigate to the `/tests` directory, and run the command `python -m pytest tests/`
 
